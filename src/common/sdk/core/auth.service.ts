@@ -44,11 +44,11 @@ export class AuthService {
   }
 
   public setCurrentUser(currentUser) {
-    this.storage.set('current-user', currentUser);
+    this.storage.set('current-driver', currentUser);
   }
 
   public getCurrentUser() {
-    return this.storage.get('current-user');
+    return this.storage.get('current-driver');
   }
 
 }

@@ -1,3 +1,4 @@
+import { getTestBed } from '@angular/core/testing';
 import { AuthService } from "./../../core/auth.service";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
@@ -17,12 +18,19 @@ import { UnAuthorized } from "src/common/error/unauthorized-error";
 export class AccountSettingService {
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  public async updateAccountSettings(credentials: object) {
+  public async updateAccountSettings(credentials: object | any) {
     const url = DriverAppConfig.getHostPath() + "/api/v1/drivers/updateMe";
     const token = await this.authService.getTokenFromStorage();
 
+    const formData = new FormData();
+    formData.append('fName', credentials.fName);
+    formData.append('lName', credentials.lName);
+    formData.append('gender', credentials.gender);
+    formData.append('dob', credentials.dob);
+    formData.append('photoAvatar', credentials.photoAvatar);
+
     return this.http
-      .patch(url, credentials, {
+      .patch(url, formData, {
         headers: new HttpHeaders().set("Authorization", "Bearer " + token),
       })
       .pipe(
