@@ -51,6 +51,7 @@ export class AccountSettingPage implements OnInit {
 
   async ionViewWillEnter() {
     this.currentUser = await this.authService.getCurrentUser();
+    this.accountSettingForm.patchValue({ photoAvatar: this.currentUser.photoAvatar });
     this.accountSettingForm.patchValue({ fName: this.currentUser.fName });
     this.accountSettingForm.patchValue({ lName: this.currentUser.lName });
     this.accountSettingForm.patchValue({ gender: this.currentUser.gender });
@@ -137,6 +138,7 @@ export class AccountSettingPage implements OnInit {
         .subscribe(
           (response: any) => {
             loadingEl.dismiss();
+            this.accountSettingForm.reset();
 
             this.settingSavedSuccessful = true;
             this.currentUser = response.data.user;
