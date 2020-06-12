@@ -1,0 +1,41 @@
+.back-btn {
+  padding: 20px 16px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ddd;
+
+  .back {
+    margin-right: 10px;
+    animation-name: backIcon-animate;
+    animation-duration: 600ms;
+    outline: none;
+  }
+  @keyframes backIcon-animate {
+    from {
+      transform: translate(-250px);
+    }
+    to {
+      transform: translate(0);
+    }
+  }
+}
+
+ion-row {
+  padding: 20px 20px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.input-container {
+    margin-bottom: 10px;
+
+    ion-input {
+        margin-left: 20px;
+        width: 80%;
+        height: 25px;
+        font-size: 16px;
+    }
+    .close-icon {
+      display: none;
+    }
+}
+

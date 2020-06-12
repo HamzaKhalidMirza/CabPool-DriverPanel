@@ -1,0 +1,68 @@
+<ion-content>
+  <div class="back-btn">
+    <ion-buttons slot="start">
+      <ion-icon class="back" size="large" name="arrow-back-outline" (click)="goBack()"></ion-icon>
+    </ion-buttons>
+  </div>
+
+  <form>
+    <div class="location-inputs">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col size="12">
+            <div class="input-container">
+              <ion-item lines="none" color="light">
+                <ion-input
+                  placeholder="From"
+                  type="text"
+                  (input)="onInputFrom($event.target.value)"
+                >
+                </ion-input>
+                <div class="edit-icon-container edit-icon" #editFromIcon>
+                  <ion-icon
+                    name="pencil-outline"
+                    slot="end"
+                    class="edit-icon"
+                  ></ion-icon>
+                </div>
+                <div class="close-icon-container close-icon" #closeFromIcon>
+                  <ion-icon
+                    name="close-outline"
+                    slot="end"
+                    size="large"
+                  ></ion-icon>
+                </div>
+              </ion-item>
+            </div>
+          </ion-col>
+          <ion-col size="12">
+            <div class="input-container">
+              <ion-item lines="none" color="light">
+                <ion-input
+                  placeholder="Where to?"
+                  type="text"
+                  (input)="onInputWhere($event.target.value)"
+                >
+                </ion-input>
+                <div class="edit-icon-container edit-icon" #editWhereIcon>
+                  <ion-icon
+                    name="pencil-outline"
+                    slot="end"
+                    class="edit-icon"
+                  ></ion-icon>
+                </div>
+                <div class="close-icon-container close-icon" #closeWhereIcon>
+                  <ion-icon
+                    name="close-outline"
+                    slot="end"
+                    size="large"
+                  ></ion-icon>
+                </div>
+              </ion-item>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </form>
+</ion-content>

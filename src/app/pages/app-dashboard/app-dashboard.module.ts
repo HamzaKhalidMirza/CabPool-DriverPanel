@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { AppDashboardPageRoutingModule } from './app-dashboard-routing.module';
 
 import { AppDashboardPage } from './app-dashboard.page';
+import { SharedModule } from '../app-dashboard/shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    AppDashboardPageRoutingModule
+    AppDashboardPageRoutingModule,
+    SharedModule
   ],
   declarations: [AppDashboardPage]
 })
