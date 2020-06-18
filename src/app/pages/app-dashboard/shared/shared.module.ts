@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { ImagePickerComponent } from './pickers/image-picker/image-picker.component';
 import { MapCoverComponent } from './pickers/map-cover/map-cover.component';
 import { LocationPickerModalComponent } from './modals/location-picker-modal/location-picker-modal.component';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
 
 @NgModule({
     declarations: [
@@ -25,7 +26,8 @@ import { LocationPickerModalComponent } from './modals/location-picker-modal/loc
     ],
     entryComponents: [
         LocationPickerModalComponent
-    ]
+    ],
+    providers: [Geolocation]
   })
   export class SharedModule {}
   

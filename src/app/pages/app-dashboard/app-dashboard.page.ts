@@ -3,16 +3,14 @@ import {
   Component,
   OnInit,
   AfterViewInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
+  OnDestroy
 } from "@angular/core";
-import { Plugins, Capacitor } from "@capacitor/core";
 import {
   PlaceLocation,
   Coordinates,
 } from "../../../common/model/placeLocation.model";
 import { ModalController, AlertController } from "@ionic/angular";
+import { Geolocation } from "@ionic-native/geolocation/ngx";
 
 @Component({
   selector: "app-app-dashboard",
@@ -20,17 +18,52 @@ import { ModalController, AlertController } from "@ionic/angular";
   styleUrls: ["./app-dashboard.page.scss"],
 })
 export class AppDashboardPage implements OnInit, AfterViewInit, OnDestroy {
-  constructor(private modalCtrl: ModalController) {}
+  center: any;
 
-  ngOnInit() {}
+  constructor(
+    private modalCtrl: ModalController,
+    private alertCtrl: AlertController,
+    private geolocation: Geolocation
+  ) {}
 
-  ngAfterViewInit(): void {}
+  ngOnInit() {
+    this.geolocation
+      .getCurrentPosition()
+      .then((geoPosition) => {
+        const coordinates: Coordinates = {
+          lat: geoPosition.coords.latitude,
+          lng: geoPosition.coords.longitude,
+        };
+        this.center = coordinates;
+        console.log("Coords", this.center);
+      })
+      .catch((err) => {
+        console.log(err);
+        this.showMapsErrorAlert();
+      });
+  }
+
+  ngAfterViewInit() {}
+
+  private showMapsErrorAlert() {
+    this.alertCtrl
+      .create({
+        header: "Could not fetch location",
+        buttons: ["Okay"],
+      })
+      .then((alertEl) => alertEl.present());
+  }
 
   ngOnDestroy(): void {}
 
   openLocationPickerModal() {
     this.modalCtrl
-      .create({ component: LocationPickerModalComponent })
+      .create({ 
+        component: LocationPickerModalComponent,
+        componentProps: {
+          'currentLocation': this.center
+        }
+      })
       .then((modalEl) => {
         modalEl.present();
       });
