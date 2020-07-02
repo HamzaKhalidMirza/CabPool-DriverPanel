@@ -1,186 +1,467 @@
+import {
+  Coordinates,
+  PlaceLocation,
+} from "./../../../../../../common/model/placeLocation.model";
 import { BaseMapService } from "src/common/sdk/custom/maps/baseMap.service";
 import { ModalController } from "@ionic/angular";
-import { ElementRef, Input } from "@angular/core";
-import { Component, OnInit, ViewChild } from "@angular/core";
-import { Router } from "@angular/router";
-
-declare var google;
+import {
+  ElementRef,
+  Input,
+  AfterViewInit,
+  Output,
+  EventEmitter,
+} from "@angular/core";
+import { Component, NgZone, OnInit, ViewChild } from "@angular/core";
 
 @Component({
   selector: "app-location-picker-modal",
   templateUrl: "./location-picker-modal.component.html",
   styleUrls: ["./location-picker-modal.component.scss"],
 })
-export class LocationPickerModalComponent implements OnInit {
+export class LocationPickerModalComponent implements OnInit, AfterViewInit {
   @ViewChild("editFromIcon") editFromIcon: ElementRef;
   @ViewChild("closeFromIcon") closeFromIcon: ElementRef;
   @ViewChild("editWhereIcon") editWhereIcon: ElementRef;
   @ViewChild("closeWhereIcon") closeWhereIcon: ElementRef;
 
-  @Input("center") currentLocation;
-  googleMaps: any;
+  @ViewChild("fromInputEl") fromInputEl: ElementRef | any;
+  @ViewChild("whereInputEl") whereInputEl: ElementRef | any;
 
-  sourceLoading: any;
-  sourceLocations: any = [];
+  sourceFocus: any;
+  destinationFocus: any;
+  lastFocusedField: any;
+
+  @Input("center") currentLocation: Coordinates;
+  googleMapsSdk: any;
+  loading: any;
+
+  sourceLocationItems: any;
+  destinationLocationItems: any;
+
   selectedSourceLocation: any;
-
-  destinationLoading: any;
-  destinationLocations: any = [];
   selectedDestinationLocation: any;
 
+  mapAdjustmentIcons: any;
+  mapAdjustment: any;
+
   constructor(
-    private router: Router,
     private modalCtrl: ModalController,
-    private baseMapService: BaseMapService
+    private baseMapService: BaseMapService,
+    private zone: NgZone
   ) {}
+
+  ionViewWillEnter() {
+    this.sourceLocationItems = [];
+    this.destinationLocationItems = [];
+    this.loading = false;
+    this.mapAdjustment = false;
+    this.mapAdjustmentIcons = true;
+
+    if (this.currentLocation) {
+      this.baseMapService
+        .getAddress(this.currentLocation.lat, this.currentLocation.lng)
+        .subscribe(() => {
+          const location: PlaceLocation = {
+            lat: this.currentLocation.lat,
+            lng: this.currentLocation.lng,
+            address: "Your Location",
+            staticMapImageUrl: null,
+          };
+
+          this.selectedSourceLocation = location;
+
+          if (this.selectedSourceLocation) {
+            this.whereInputEl.setFocus();
+          } else {
+            this.fromInputEl.setFocus();
+          }
+        });
+    }
+  }
 
   ngOnInit() {}
 
-  onInputFrom(value) {
-    this.sourceLocations = [];
-    this.destinationLocations = [];
+  ngAfterViewInit() {}
+
+  onSearchSourceLocation(value) {
+    this.sourceLocationItems = [];
+    this.destinationLocationItems = [];
+    this.selectedSourceLocation = null;
 
     if (value === "") {
       this.closeFromIcon.nativeElement.style.display = "none";
       this.editFromIcon.nativeElement.style.display = "block";
+      this.mapAdjustmentIcons = true;
+      this.loading = false;
     } else {
       this.closeFromIcon.nativeElement.style.display = "block";
       this.editFromIcon.nativeElement.style.display = "none";
-      this.sourceLoading = true;
+      this.mapAdjustmentIcons = false;
+      this.loading = true;
 
       this.baseMapService
         .getGoogleMapsSdk()
-        .then((googleMaps: any) => {
-          // console.log("Google Maps Place Sdk", googleMaps);
-          this.googleMaps = googleMaps;
-
-          let myLatLng = new googleMaps.LatLng({
+        .then((googleMapsSdk: any) => {
+          this.googleMapsSdk = googleMapsSdk;
+          let myLatLng = new googleMapsSdk.LatLng({
             lat: this.currentLocation.lat,
             lng: this.currentLocation.lng,
           });
-          let service = new googleMaps.places.AutocompleteService();
-          service.getQueryPredictions(
+
+          let service = new googleMapsSdk.places.AutocompleteService();
+          service.getPlacePredictions(
             {
               input: value,
               components: "country:pk",
               location: myLatLng,
               radius: "500",
             },
-            (locations) => {
-              this.sourceLoading = false;
-              this.sourceLocations = locations;
-              // console.log('Locations', locations);
-              // console.log('Source Locations', this.sourceLocations);
+            (predictions) => {
+              this.loading = false;
+              this.sourceLocationItems = [];
+
+              this.zone.run(() => {
+                predictions.forEach((prediction) => {
+                  this.sourceLocationItems.push(prediction);
+                });
+              });
             }
           );
         })
         .catch((err) => {
-          this.sourceLoading = false;
+          this.loading = false;
           console.log(err);
         });
     }
   }
 
-  onInputWhere(value) {
-    this.sourceLocations = [];
-    this.destinationLocations = [];
+  onSearchDestinationLocation(value) {
+    this.sourceLocationItems = [];
+    this.destinationLocationItems = [];
+    this.selectedDestinationLocation = null;
 
     if (value === "") {
       this.closeWhereIcon.nativeElement.style.display = "none";
       this.editWhereIcon.nativeElement.style.display = "block";
+      this.mapAdjustmentIcons = true;
+      this.loading = false;
     } else {
       this.closeWhereIcon.nativeElement.style.display = "block";
       this.editWhereIcon.nativeElement.style.display = "none";
-      this.destinationLoading = true;
+      this.mapAdjustmentIcons = false;
+      this.loading = true;
 
       this.baseMapService
         .getGoogleMapsSdk()
-        .then((googleMaps: any) => {
-          // console.log("Google Maps Place Sdk", googleMaps);
-          this.googleMaps = googleMaps;
-
-          let myLatLng = new googleMaps.LatLng({
+        .then((googleMapsSdk: any) => {
+          this.googleMapsSdk = googleMapsSdk;
+          let myLatLng = new googleMapsSdk.LatLng({
             lat: this.currentLocation.lat,
             lng: this.currentLocation.lng,
           });
-          let service = new googleMaps.places.AutocompleteService();
-          service.getQueryPredictions(
+
+          let service = new googleMapsSdk.places.AutocompleteService();
+          service.getPlacePredictions(
             {
               input: value,
               components: "country:pk",
               location: myLatLng,
               radius: "500",
             },
-            (locations) => {
-              this.destinationLoading = false;
-              this.destinationLocations = locations;
-              // console.log(locations);
+            (predictions) => {
+              this.loading = false;
+              this.destinationLocationItems = [];
+
+              this.zone.run(() => {
+                predictions.forEach((prediction) => {
+                  this.destinationLocationItems.push(prediction);
+                });
+              });
             }
           );
         })
         .catch((err) => {
-          this.destinationLoading = false;
+          this.loading = false;
           console.log(err);
         });
-
     }
   }
 
-  closeFromText() {
-    this.sourceLocations = [];
-    this.destinationLocations = [];
+  closeSourceLocationField() {
+    console.log("OnCloseFrom Hi");
+    this.loading = false;
+    this.selectedSourceLocation = null;
+    this.sourceLocationItems = [];
     this.closeFromIcon.nativeElement.style.display = "none";
     this.editFromIcon.nativeElement.style.display = "block";
-    let fromInput: any = document.getElementById("fromInputEl");
-    fromInput.value = "";
+    this.fromInputEl.value = "";
   }
 
-  closeWhereText() {
-    this.sourceLocations = [];
-    this.destinationLocations = [];
+  closeDestinationLocationField() {
+    console.log("OnCloseWhere Hi");
+    this.loading = false;
+    this.selectedDestinationLocation = null;
+    this.destinationLocationItems = [];
     this.closeWhereIcon.nativeElement.style.display = "none";
     this.editWhereIcon.nativeElement.style.display = "block";
-    let fromInput: any = document.getElementById("fromWhereEl");
-    fromInput.value = "";
+    this.whereInputEl.value = "";
   }
 
   onBlurFrom() {
-    console.log('OnBlurFrom Hi');
-    this.sourceLocations = [];
-    this.destinationLocations = [];
-
-    this.sourceLoading = false;
-    this.destinationLoading = false;
+    this.closeFromIcon.nativeElement.style.display = "none";
+    this.editFromIcon.nativeElement.style.display = "block";
+    this.sourceFocus = false;
+    this.loading = false;
+    this.lastFocusedField = "Source";
+    console.log("Source Focus: ", this.sourceFocus, this.lastFocusedField);
   }
 
   onBlurwhere() {
-    console.log('OnBlurWhere Hi');
-    this.sourceLocations = [];
-    this.destinationLocations = [];
-
-    this.sourceLoading = false;
-    this.destinationLoading = false;
+    this.closeWhereIcon.nativeElement.style.display = "none";
+    this.editWhereIcon.nativeElement.style.display = "block";
+    this.destinationFocus = false;
+    this.loading = false;
+    this.lastFocusedField = "Dest";
+    console.log("Dest Focus: ", this.destinationFocus, this.lastFocusedField);
   }
 
-  onFocusFrom() {
-    let fromInput: any = document.getElementById('fromInputEl');
-    fromInput.getInputElement()
-    .then(nativeInputEl => {
+  onFocusFrom(value) {
+    this.destinationLocationItems = [];
+    this.sourceFocus = true;
+    this.mapAdjustment = false;
+    console.log("Source Focus: ", this.sourceFocus);
+
+    if (value != "") {
+      this.closeFromIcon.nativeElement.style.display = "block";
+      this.editFromIcon.nativeElement.style.display = "none";
+    } else {
+      this.mapAdjustmentIcons = true;
+    }
+
+    this.fromInputEl.getInputElement().then((nativeInputEl) => {
       nativeInputEl.select();
     });
   }
 
-  onFocusWhere() {
-    let fromInput: any = document.getElementById('whereInputEl');
-    fromInput.getInputElement()
-    .then(nativeInputEl => {
+  onFocusWhere(value) {
+    this.sourceLocationItems = [];
+    this.destinationFocus = true;
+    this.mapAdjustment = false;
+    console.log("Dest Focus: ", this.destinationFocus);
+
+    if (value != "") {
+      this.closeWhereIcon.nativeElement.style.display = "block";
+      this.editWhereIcon.nativeElement.style.display = "none";
+    } else {
+      this.mapAdjustmentIcons = true;
+    }
+
+    this.whereInputEl.getInputElement().then((nativeInputEl) => {
       nativeInputEl.select();
     });
   }
 
-  onSelectionSourceLocation(location) {
-    console.log(location);
-    this.selectedSourceLocation = location;
+  onSelectionSourceLocation(item) {
+    this.sourceLocationItems = [];
+    this.destinationLocationItems = [];
+    this.selectedSourceLocation = null;
+
+    let geocoder = new this.googleMapsSdk.Geocoder();
+    console.log(this.googleMapsSdk);
+
+    geocoder.geocode({ placeId: item.place_id }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        let position = {
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng(),
+        };
+
+        const location: PlaceLocation = {
+          lat: position.lat,
+          lng: position.lng,
+          address: item.structured_formatting.main_text,
+          staticMapImageUrl: null,
+        };
+
+        this.selectedSourceLocation = location;
+
+        if (
+          this.selectedSourceLocation != null &&
+          this.selectedDestinationLocation != null
+        ) {
+
+          this.modalCtrl.dismiss([
+            this.selectedSourceLocation,
+            this.selectedDestinationLocation,
+          ]);
+          return;
+        }
+
+        if (this.selectedSourceLocation) {
+          this.whereInputEl.setFocus();
+        } else {
+          this.fromInputEl.setFocus();
+        }
+      }
+    });
+  }
+
+  onSelectionDestinationLocation(item) {
+    this.sourceLocationItems = [];
+    this.destinationLocationItems = [];
+    this.selectedDestinationLocation = null;
+
+    let geocoder = new this.googleMapsSdk.Geocoder();
+
+    geocoder.geocode({ placeId: item.place_id }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        let position = {
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng(),
+        };
+
+        const location: PlaceLocation = {
+          lat: position.lat,
+          lng: position.lng,
+          address: item.structured_formatting.main_text,
+          staticMapImageUrl: null,
+        };
+
+        this.selectedDestinationLocation = location;
+
+        if (
+          this.selectedSourceLocation != null &&
+          this.selectedDestinationLocation != null
+        ) {
+          
+          this.modalCtrl.dismiss([
+            this.selectedSourceLocation,
+            this.selectedDestinationLocation,
+          ]);
+          return;
+        }
+
+        if (this.selectedDestinationLocation) {
+          this.fromInputEl.setFocus();
+        } else {
+          this.whereInputEl.setFocus();
+        }
+      }
+    });
+  }
+
+  setCurrentLocation() {
+    if (this.lastFocusedField != "Source" && this.lastFocusedField != "Dest") {
+      return;
+    }
+    if (this.lastFocusedField == "Source") {
+      const location: PlaceLocation = {
+        lat: this.currentLocation.lat,
+        lng: this.currentLocation.lng,
+        address: "Your Location",
+        staticMapImageUrl: null,
+      };
+
+      this.selectedSourceLocation = location;
+
+      if (
+        this.selectedSourceLocation != null &&
+        this.selectedDestinationLocation != null
+      ) {
+
+        this.modalCtrl.dismiss([
+          this.selectedSourceLocation,
+          this.selectedDestinationLocation,
+        ]);
+        return;
+      }
+
+      if (this.selectedSourceLocation) {
+        this.whereInputEl.setFocus();
+      } else {
+        this.fromInputEl.setFocus();
+      }
+    }
+    if (this.lastFocusedField == "Dest") {
+      const location: PlaceLocation = {
+        lat: this.currentLocation.lat,
+        lng: this.currentLocation.lng,
+        address: "Your Location",
+        staticMapImageUrl: null,
+      };
+
+      this.selectedDestinationLocation = location;
+
+      if (
+        this.selectedSourceLocation != null &&
+        this.selectedDestinationLocation != null
+      ) {
+
+        this.modalCtrl.dismiss([
+          this.selectedSourceLocation,
+          this.selectedDestinationLocation,
+        ]);
+        return;
+      }
+
+      if (this.selectedDestinationLocation) {
+        this.fromInputEl.setFocus();
+      } else {
+        this.whereInputEl.setFocus();
+      }
+    }
+  }
+
+  openLocationMapContainer() {
+    this.mapAdjustment = true;
+  }
+
+  captureLocationFromMap(location) {
+    if (this.lastFocusedField === "Source") {
+      this.selectedSourceLocation = location;
+    } else if (this.lastFocusedField === "Dest") {
+      this.selectedDestinationLocation = location;
+    }
+  }
+
+  capturePickupConfirmation() {
+    if (
+      this.selectedSourceLocation != null &&
+      this.selectedDestinationLocation != null
+    ) {
+
+      this.modalCtrl.dismiss([
+        this.selectedSourceLocation,
+        this.selectedDestinationLocation,
+      ]);
+      return;
+    }
+
+    if (this.selectedSourceLocation) {
+      this.whereInputEl.setFocus();
+    } else {
+      this.fromInputEl.setFocus();
+    }
+  }
+
+  captureDropoffConfirmation() {
+    if (
+      this.selectedSourceLocation != null &&
+      this.selectedDestinationLocation != null
+    ) {
+
+      this.modalCtrl.dismiss([
+        this.selectedSourceLocation,
+        this.selectedDestinationLocation,
+      ]);
+      return;
+    }
+
+    if (this.selectedDestinationLocation) {
+      this.fromInputEl.setFocus();
+    } else {
+      this.whereInputEl.setFocus();
+    }
   }
 
   goBack() {

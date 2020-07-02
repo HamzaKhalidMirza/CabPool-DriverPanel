@@ -16,30 +16,22 @@ import { UnAuthorized } from "src/common/error/unauthorized-error";
 export class BaseMapService {
   constructor(private http: HttpClient) {}
 
-  // public getGoogleMapsPlaceSdk() {
-  //   const win = window as any;
-  //   const googleModule = win.google;
-  //   // console.log('Google Module 1: ', googleModule);
-    
-  //   return new Promise((resolve, reject) => {
-  //     const script = document.createElement("script");
-  //     script.src =
-  //       `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsAPIKey}
-  //       &libraries=places`;
-  //     script.async = true;
-  //     script.defer = true;
-  //     document.body.appendChild(script);
-  //     script.onload = () => {
-  //       const loadedGoogleModule = win.google;
-  //       // console.log('Google Module 2: ', loadedGoogleModule);
-  //       if (loadedGoogleModule && loadedGoogleModule.maps) {
-  //         resolve(loadedGoogleModule.maps);
-  //       } else {
-  //         reject("Google maps SDK not available.");
-  //       }
-  //     };
-  //   });
-  // }
+  public getAddress(lat: number, lng: number) {
+    return this.http
+      .get<any>(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}
+         &types=street_address
+         &key=${environment.googleMapsAPIKey}`
+      )
+      .pipe(
+        map(geoData => {
+          if (!geoData || !geoData.results || geoData.results.length === 0) {
+            return null;
+          }
+          return geoData.results[0];
+        })
+      );
+  }
 
   public getGoogleMapsSdk() {
     const win = window as any;

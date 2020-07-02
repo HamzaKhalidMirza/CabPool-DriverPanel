@@ -1,15 +1,9 @@
+import { AuthService } from './../../../common/sdk/core/auth.service';
+import { Router } from '@angular/router';
+import { Coordinates } from "./../../../common/model/placeLocation.model";
 import { LocationPickerModalComponent } from "./shared/modals/location-picker-modal/location-picker-modal.component";
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  OnDestroy
-} from "@angular/core";
-import {
-  PlaceLocation,
-  Coordinates,
-} from "../../../common/model/placeLocation.model";
-import { ModalController, AlertController } from "@ionic/angular";
+import { Component, OnInit } from "@angular/core";
+import { ModalController } from "@ionic/angular";
 import { Geolocation } from "@ionic-native/geolocation/ngx";
 
 @Component({
@@ -17,13 +11,14 @@ import { Geolocation } from "@ionic-native/geolocation/ngx";
   templateUrl: "./app-dashboard.page.html",
   styleUrls: ["./app-dashboard.page.scss"],
 })
-export class AppDashboardPage implements OnInit, AfterViewInit, OnDestroy {
-  center: any;
+export class AppDashboardPage implements OnInit {
+  center: Coordinates;
 
   constructor(
     private modalCtrl: ModalController,
-    private alertCtrl: AlertController,
-    private geolocation: Geolocation
+    private geolocation: Geolocation,
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -35,37 +30,29 @@ export class AppDashboardPage implements OnInit, AfterViewInit, OnDestroy {
           lng: geoPosition.coords.longitude,
         };
         this.center = coordinates;
-        console.log("Coords", this.center);
       })
       .catch((err) => {
         console.log(err);
-        this.showMapsErrorAlert();
       });
   }
 
-  ngAfterViewInit() {}
-
-  private showMapsErrorAlert() {
-    this.alertCtrl
-      .create({
-        header: "Could not fetch location",
-        buttons: ["Okay"],
-      })
-      .then((alertEl) => alertEl.present());
-  }
-
-  ngOnDestroy(): void {}
-
   openLocationPickerModal() {
     this.modalCtrl
-      .create({ 
+      .create({
         component: LocationPickerModalComponent,
         componentProps: {
-          'currentLocation': this.center
-        }
+          currentLocation: this.center,
+        },
       })
       .then((modalEl) => {
         modalEl.present();
+        modalEl.onDidDismiss().then(async (locationData) => {
+          if(locationData) {
+            await this.authService.setFieldDataToStorage('source', locationData.data[0]);
+            await this.authService.setFieldDataToStorage('dest', locationData.data[1]);
+            this.router.navigate(['/app-dashboard/trip-booking']);
+          }
+        });
       });
   }
 }
