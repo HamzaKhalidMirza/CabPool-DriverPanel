@@ -47,7 +47,8 @@ export class AppDashboardPage implements OnInit {
       .then((modalEl) => {
         modalEl.present();
         modalEl.onDidDismiss().then(async (locationData) => {
-          if(locationData) {
+          if(locationData.data != null) {
+            await this.authService.setFieldDataToStorage('center', this.center);
             await this.authService.setFieldDataToStorage('source', locationData.data[0]);
             await this.authService.setFieldDataToStorage('dest', locationData.data[1]);
             this.router.navigate(['/app-dashboard/trip-booking']);

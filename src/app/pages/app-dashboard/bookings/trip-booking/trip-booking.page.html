@@ -5,7 +5,10 @@
       <ion-icon class="back" size="large" name="arrow-back-outline" (click)="goBack()"></ion-icon>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button disabled>
+      <ion-button
+      (click)="onCreateTrip()"
+      [disabled]="!tripBookingForm.valid"
+      >
         <ion-icon name="checkmark" size="large" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -13,12 +16,19 @@
 </ion-header>
 
 <ion-content>
-  <form>
+  <form [formGroup]="tripBookingForm">
     <ion-grid class="ion-no-padding">
       <ion-row class="map-img">
         <ion-col size="12">
           <div class="map-preview">
-            <ion-img class="static-map-img" src="assets/backgrounds/7.png"></ion-img>
+            <div class="map" #map></div>
+            <div class="map-btn">
+              <ion-button color="primary" (click)="openMapPickerModal()">
+                <ion-icon name="locate" slot="start"></ion-icon>
+                <ion-label>Select Location</ion-label>            
+              </ion-button>
+            </div>
+            <!-- <ion-img class="static-map-img" src="assets/backgrounds/7.png"></ion-img> -->
           </div>
         </ion-col>
       </ion-row>
@@ -39,13 +49,16 @@
           <ion-item lines="none">
             <ion-label position="floating">Start Date</ion-label>
             <ion-datetime
+            formControlName="startDate"
             ></ion-datetime>
           </ion-item>
         </ion-col>
         <ion-col size-sm="3">
           <ion-item lines="none">
             <ion-label position="floating">Start Time</ion-label>
-            <ion-datetime displayFormat="h:mm:A"></ion-datetime>
+            <ion-datetime displayFormat="H:mm:A"
+            formControlName="startTime"
+            ></ion-datetime>
           </ion-item>
         </ion-col>
       </ion-row>
@@ -53,10 +66,12 @@
         <ion-col size-sm="6" offset-sm="3">
           <ion-item lines="none">
             <ion-label position="floating">Details</ion-label>
-            <ion-textarea rows="3"></ion-textarea>
+            <ion-textarea rows="3"
+            formControlName="description"
+            ></ion-textarea>
           </ion-item>
         </ion-col>
       </ion-row>
-    </ion-grid>  
+    </ion-grid>
   </form>
 </ion-content>
