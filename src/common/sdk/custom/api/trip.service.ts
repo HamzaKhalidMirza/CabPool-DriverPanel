@@ -35,6 +35,32 @@ export class TripService {
     );
   }
 
+  public async getCurrentDriverAllTrips() {
+    const token = await this.authService.getTokenFromStorage();
+    const url = DriverAppConfig.getHostPath() + `/api/v1/trips/getCurrentDriverTrips`;
+
+    return this.http.get(url, {
+        headers: new HttpHeaders().set("Authorization", "Bearer " + token),
+      })
+    .pipe(
+      map((response: Response) => response),
+      catchError(this.handleError)
+    );
+  }
+
+  public async getCurrentDriverSingleTrip(credentials) {
+    const token = await this.authService.getTokenFromStorage();
+    const url = DriverAppConfig.getHostPath() + `/api/v1/trips/getCurrentDriverTrip/${credentials.tripId}`;
+
+    return this.http.get(url, {
+        headers: new HttpHeaders().set("Authorization", "Bearer " + token),
+      })
+    .pipe(
+      map((response: Response) => response),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: Response) {
     if (error.status === 400) {
       return throwError(new BadInput(error));
