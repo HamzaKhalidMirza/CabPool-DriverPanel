@@ -62,21 +62,24 @@ export class TripBookingPage implements OnInit {
     await this.authService.clearFieldDataFromStorage("dest");
     await this.authService.clearFieldDataFromStorage("center");
 
-    this.createMap();
+    if(this.sourceLocation && this.destLocation) {
+      this.createMap();
 
-    this.tripBookingForm.patchValue({
-      startLocation: {
-        coordinates: [this.sourceLocation.lat, this.sourceLocation.lng],
-        address: this.sourceLocation.address
-      }
-    });
-    this.tripBookingForm.patchValue({
-      endLocation: {
-        coordinates: [this.destLocation.lat, this.destLocation.lng],
-        address: this.destLocation.address
-      }
-    });
-    this.tripBookingForm.patchValue({seatsAvailable: this.seatsCounter});
+      this.tripBookingForm.patchValue({
+        startLocation: {
+          coordinates: [this.sourceLocation.lat, this.sourceLocation.lng],
+          address: this.sourceLocation.address
+        }
+      });
+      this.tripBookingForm.patchValue({
+        endLocation: {
+          coordinates: [this.destLocation.lat, this.destLocation.lng],
+          address: this.destLocation.address
+        }
+      });
+      this.tripBookingForm.patchValue({seatsAvailable: this.seatsCounter});  
+    }
+
   }
 
   formInitializer() {
