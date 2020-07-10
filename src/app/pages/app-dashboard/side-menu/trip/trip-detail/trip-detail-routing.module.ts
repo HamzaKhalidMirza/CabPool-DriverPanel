@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: TripDetailPage
+  },
+  {
+    path: 'booked-profile',
+    loadChildren: () => import('./booked-profile/booked-profile.module').then( m => m.BookedProfilePageModule)
   }
 ];
 

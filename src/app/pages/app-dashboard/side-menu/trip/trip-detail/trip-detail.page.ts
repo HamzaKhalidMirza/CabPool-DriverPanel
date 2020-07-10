@@ -1,13 +1,15 @@
+import { BookingService } from './../../../../../../common/sdk/custom/api/booking.service';
 import { TripService } from './../../../../../../common/sdk/custom/api/trip.service';
 import { BaseMapService } from 'src/common/sdk/custom/maps/baseMap.service';
 import { Component, OnInit, ElementRef, ViewChild, Renderer2 } from '@angular/core';
 import { Location } from "@angular/common";
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AppError } from "src/common/error/app-error";
 import { BadInput } from "src/common/error/bad-input";
 import { NotFoundError } from "src/common/error/not-found-error";
 import { UnAuthorized } from "src/common/error/unauthorized-error";
 import {format} from "date-fns";
+import { AuthService } from 'src/common/sdk/core/auth.service';
 
 @Component({
   selector: 'app-trip-detail',
@@ -23,16 +25,21 @@ export class TripDetailPage implements OnInit {
   googleMapsSdk: any;
   isLoading: any;
   loadedTrip: any;
+  bookingTrips: any = [];
 
   constructor(
     private location: Location,
     private renderer: Renderer2,
     private baseMapService: BaseMapService,
     private route: ActivatedRoute,
-    private tripService: TripService
+    private tripService: TripService,
+    private authService: AuthService,
+    private router: Router,
+    private bookingService: BookingService
   ) { }
 
   ngOnInit() {
+    this.bookingTrips = [];
     this.route.paramMap.subscribe( async (router) => {
       let tripId = router.get('tridId');
       this.isLoading = true;
@@ -56,6 +63,37 @@ export class TripDetailPage implements OnInit {
             address: this.loadedTrip.endLocation.address
           };
           this.createMap();
+
+          if(this.loadedTrip.booking.length > 0) {
+            this.bookingTrips = [];
+            this.isLoading = true;
+            console.log(this.loadedTrip.booking);
+            this.loadedTrip.booking.forEach( async (booking: any) => {
+              const getBookingObservable = await this.bookingService.getCurrentDriverSingleTrip({
+                bookingId: booking.id
+              });
+              
+              getBookingObservable.subscribe(
+                async (response: any) => {
+                  this.isLoading = false;
+                  this.bookingTrips.push(response.data.data);
+                  console.log(this.bookingTrips);
+                },
+                (error: AppError) => {
+                  this.isLoading = false;
+                  if (error instanceof BadInput) {
+                    console.log("error B", error);
+                  } else if (error instanceof NotFoundError) {
+                    console.log("error N", error);
+                  } else if (error instanceof UnAuthorized) {
+                    console.log("error U", error);
+                  } else {
+                    console.log("error", error);
+                  }
+                }
+              );
+            });
+          }
         },
         (error: AppError) => {
           this.isLoading = false;
@@ -71,6 +109,11 @@ export class TripDetailPage implements OnInit {
         }
       );
       });
+  }
+
+  async openBookedProfile(booking) {
+    await this.authService.setFieldDataToStorage('bookedData', booking);
+    this.router.navigate([`/app-dashboard/trip/${this.loadedTrip.id}/booked-profile`]);
   }
 
   createMap() {

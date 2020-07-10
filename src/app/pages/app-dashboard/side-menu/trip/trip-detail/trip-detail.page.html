@@ -34,7 +34,7 @@
 
   <ion-grid class="ion-no-padding" *ngIf="!isLoading && loadedTrip != null">
     <ion-row>
-      <ion-col>
+      <ion-col size="12">
         <ion-card 
           style="border-radius: 20px; border: 1px solid #aaa; padding: 10px;"
         >
@@ -61,6 +61,29 @@
               {{ loadedTrip?.description }}
             </p>
           </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-grid class="ion-no-padding" *ngIf="!isLoading && bookingTrips.length > 0">
+    <ion-row>
+      <ion-col size="12" *ngFor="let booking of bookingTrips">
+        <ion-card 
+          (click)="openBookedProfile(booking)"
+          style="border-radius: 20px; border: 1px solid #aaa; padding: 10px;"
+        >
+          <ion-item lines="none">
+            <ion-thumbnail>
+              <ion-img [src]="booking?.client.photoAvatar"></ion-img>
+            </ion-thumbnail>
+            <ion-label style="margin-left: 20px;">
+              <h2>{{booking?.client.username}}</h2>
+              <h2>{{booking?.startLocation.address}}</h2>
+              <p>{{booking?.endLocation.address}}</p>
+            </ion-label>
+            <ion-icon name="chevron-forward-outline" slot="end" color="primary"></ion-icon>
+          </ion-item>
         </ion-card>
       </ion-col>
     </ion-row>
